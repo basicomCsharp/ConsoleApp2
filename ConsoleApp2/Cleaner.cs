@@ -13,27 +13,51 @@ namespace ConsoleApp2
         private static TimeSpan ts;
         private void DelFile(string dir)
         {
-            string[] files = Directory.GetFiles(dir);
-            foreach (string s in files)
+            try
             {
-                var fileInfo = new FileInfo(s);
-                ts = DateTime.Now - fileInfo.LastWriteTime;
-                if (ts.Minutes > 30)
-                    fileInfo.Delete();
+                string[] files = Directory.GetFiles(dir);
+                foreach (string s in files)
+                {
+                    var fileInfo = new FileInfo(s);
+                    ts = DateTime.Now - fileInfo.LastWriteTime;
+                    if (ts.Minutes > 30)
+                        fileInfo.Delete();
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Нет доступа к файлам в каталоге {0}",dir.ToString());
             }
         }
-        public void DelOldFiles(string dir)
+        public void DelOldFolder(string dir)
         {
             DirName = dir;
             if (Directory.Exists(DirName))
             {
-                DelFile(DirName);
-                string[] dirs = Directory.GetDirectories(DirName);
-                foreach (string d in dirs)
+                try
                 {
-                    DelFile(d);
-                    DelOldFiles(d);
-                }                   
+                    DelFile(DirName);
+                    string[] dirs = Directory.GetDirectories(DirName);
+                    foreach (string d in dirs)
+                    {
+                        var dirInfo = new DirectoryInfo(d);
+                        ts = DateTime.Now - dirInfo.LastAccessTime;
+                        if (ts.Minutes > 30)
+                        {                             
+                            DelFile(d);
+                            DelOldFolder(d);
+                            dirInfo.Delete();
+                        }
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Нет доступа к каталогу {0}", DirName.ToString());
+                }
+            }
+            else
+            {
+                Console.WriteLine("Каталог не существует.");
             }
         }
     }
